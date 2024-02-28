@@ -1,0 +1,18 @@
+package recommendationSystem;
+
+//We use this class as a struct
+
+public class Rating {
+	
+	public int movie;
+	public double rating;
+	
+	Rating(int movie, double rating){
+		movie = this.movie;
+		rating = this.rating;
+	}
+	
+}
+
+
+	

@@ -1,0 +1,14 @@
+This folder contains all the things related to the implementation of our work:
+	Implementation folder contains the java project.
+
+	Datasets folder contains the Datasets that we have used in this work.
+
+	Results folder contains the result of each execution of the algorithm.
+
+	User folder contains the data of the user that will be used in the next execution.
+
+	Experiments folder contains the user data and the results of each experiment done.
+
+	Presentation folder contains the presentation of our work.
+
+	Papers folder contains the papers that we have used in our literature review and during the implementation.

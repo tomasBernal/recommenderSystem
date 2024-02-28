@@ -1,0 +1,246 @@
+package recommendationSystem;
+
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Scanner;
+import java.util.regex.Pattern;
+
+public class CollaborativeFiltering {
+
+	// StandarValue = (value - rowMeanValue) / (rowMax - rowMin)
+	public static List<ArrayList<Double>> standarize(List<ArrayList<Double>> matrix) {
+		
+		ArrayList<ArrayList<Double>> mStandard = new ArrayList<>();
+		double mean, maximum, minimum, total;
+		
+		for (int i = 0; i < matrix.size(); i++) {
+			// for every row we calculate the mean, the maximum and the minimum
+			minimum = matrix.get(i).get(0);
+			maximum = matrix.get(i).get(0);
+			total = matrix.get(i).get(0);
+			for (int j = 1; j < matrix.get(i).size(); j++) {
+				total += matrix.get(i).get(j);
+				if (matrix.get(i).get(j) > maximum)
+					maximum = matrix.get(i).get(j);
+				if (matrix.get(i).get(j) < minimum)
+					minimum = matrix.get(i).get(j);
+			}
+			mean = total / matrix.get(i).size();
+			System.out.println("Row " + i + ":");
+			System.out.println("Mean = " + mean + ", Maximum = " + maximum + ", Minimum = " + minimum);
+			ArrayList<Double> a = new ArrayList<>();
+			for (int j = 0; j < matrix.get(i).size(); j++) {
+				// StandarValue = (value - rowMeanValue) / (rowMax - rowMin)
+				a.add((matrix.get(i).get(j) - mean) / (maximum - minimum));
+			}
+			mStandard.add(a);
+		}
+		return mStandard;
+	}
+
+	// Show a matrix in the console
+	public static void matrixReader(List<ArrayList<Double>> matrix) {
+		
+		for (int i = 0; i < matrix.size(); i++) {
+			System.out.print(matrix.get(i).get(0));
+			for (int j = 1; j < matrix.get(i).size(); j++) {
+				System.out.print(", " + matrix.get(i).get(j));
+			}
+			System.out.println();
+		}
+		 
+	}
+
+	// Show a matrix of two arrays in the console
+	public static void matrixReader(double[][] matrix) {
+		for (int i = 0; i < matrix.length; i++) {
+			System.out.print(matrix[i][0]);
+			for (int j = 1; j < matrix[i].length; j++) {
+				System.out.print(", " + matrix[i][j]);
+			}
+			System.out.println("");
+		}
+	}
+
+	/*
+	 * ð�‘†ð�‘–ð�‘šð�‘–ð�‘™ð�‘Žð�‘Ÿð�‘–ð�‘¡ð�‘¦(ð��´,ð��µ)=cos(ð�œƒ)=(ð��´â‹…ð��µ) / (||ð��´||Ã—||ð��µ||) n
+	 * ð��´â‹…ð��µ=âˆ‘ð��´ð�‘–Ã—ð��µð�‘–=(ð��´1Ã—ð��µ1)+(ð��´2Ã—ð��µ2)+â€¦+(ð��´ð�‘›Ã—ð��µð�‘›) i=1 ||ð��´|| =
+	 * sqrt(sumatory[1,n](pow(Ai,2)) ||ð��µ|| = sqrt(sumatory[1,n](pow(Bi,2))
+	 */
+	public static double[][] cosineSimilarity(double[][] matrix) {
+		double[][] csMatrix = new double[matrix.length][matrix.length];
+		/*
+		 * 1 2 3 1 4 5
+		 */
+		// A: row that we are calculating the similarity with the other rows
+		for (int a = 0; a < matrix.length; a++) {
+			// B: the other row
+			for (int b = 0; b < matrix.length; b++) {
+				double dotProduct = 0;
+				// calculation of the dot product between the 2 rows
+				// ð��´â‹…ð��µ=âˆ‘ð��´ð�‘–Ã—ð��µð�‘–=(ð��´1Ã—ð��µ1)+(ð��´2Ã—ð��µ2)+â€¦+(ð��´ð�‘›Ã—ð��µð�‘›)
+				for (int j = 0; j < matrix[a].length; j++) {
+					dotProduct += matrix[a][j] * matrix[b][j];
+				}
+				// ||ð��´||Ã—||ð��µ||:
+				// ||ð��´|| = sqrt(sumatory[1,n](pow(Ai,2))
+				double sum = 0;
+				for (int j = 0; j < matrix[a].length; j++) {
+					sum += Math.pow(matrix[a][j], 2);
+				}
+				double A = Math.sqrt(sum);
+				// ||ð��µ||:
+				sum = 0;
+				for (int j = 0; j < matrix[a].length; j++) {
+					sum += Math.pow(matrix[b][j], 2);
+				}
+				double B = Math.sqrt(sum);
+				double AxB = A * B;
+				double cos = dotProduct / AxB;
+				csMatrix[a][b] = cos;
+			}
+		}
+		return csMatrix;
+
+	}
+
+	// for one movie watched and rated by an user it returns all the movies with a
+	// value the film with the second highest value
+	// would be the one recommended as the first one is the movie itself
+	public static Map<String, Double> getSimilarMovies(String movie, double rating, double fixer, double[][] matrix,
+			List<String> movies) {
+		HashMap<String, Double> similarMovies = new HashMap<>();
+		// User Movie
+		int m = movies.indexOf(movie);
+		for (int j = 0; j < matrix.length; j++) {
+			// The new value is the result of multiply the value of each movie with the
+			// movie of the user with the rating of the user minus a number call fixer
+			similarMovies.put(movies.get(j), matrix[m][j] * (rating - fixer));
+		}
+		LinkedHashMap<String, Double> recommendation = new LinkedHashMap<>();
+		// Descent order, first one is the same film so we don't have to look to the
+		// first one, the recommendation would be the second one.
+		similarMovies.entrySet().stream().sorted(Map.Entry.comparingByValue(Comparator.reverseOrder()))
+				.forEachOrdered(x -> recommendation.put(x.getKey(), x.getValue()));
+
+		return recommendation;
+	}
+
+	public static void main(String[] args) {
+		/*
+		 * Lo que necesitamos ahora no es una clase lectora si no una clase que tenga
+		 * las funciones basicas con .csv Que pueda leer un csv y escribir en Ã©l para
+		 * modificarlo con javaCSV no puedo modificar una fila concreta solo puedo
+		 * aÃ±adir nuevas filas enteras ni si quiera borrar Parece ser que cada vez que
+		 * tengo que cambiar un dato debo de crear un .csv entero nuevo Para evitar
+		 * estar todo el rato creando .csv y para que sea mas facil y mÃ¡s rÃ¡pido
+		 * computancionalmente debemos tratar los datos como si fuese una MATRIZ asÃ­ que
+		 * deberÃ­amos aÃ±adir los datos a una matriz, asÃ­ podriamos cambiar los datos de
+		 * manera mas eficaz, transponerla y jugar con los datos que son todos numÃ©ricos
+		 * si solo nos quedamos al final del.csv con que los indices de las columnas son
+		 * productos/peliculas y los indices de las filas son usuarios Si usamos una
+		 * matriz igual no hace falta hacer un writeCSV pues no es necesario modificar
+		 * el fichero como tal
+		 * 
+		 */
+
+		/*
+		 * 1. Leo el .csv y lo paso a una matriz quitando los datos que no me importe
+		 * dejando solo las valoraciones de los usuarios(i) a cada producto(j) quizas me
+		 * interesa guardarme en otra estructura de datos la informacion importante de
+		 * cada columna por ejemplo el tipo de producto o el genero de la pelicula para
+		 * despues ver si estamos haciendo buenas recomendaciones o si las
+		 * recomendaciones tienen sentido, es decir si a una persona que le guste mucho
+		 * la accion las recomendaciones son peliculas de accion y me quedo con las
+		 * peliculas que hay 2. Normalizo los datos donde no hayan valores pongo un 0
+		 * 
+		 */
+		
+		// First we obtain the name of the movies with the id
+		List<MovieId> films;
+		films = ReaderOfFiles.getMovies("C:\\Users\\tomas\\Desktop\\AI\\Implementacion\\DataSets\\MoviesDataset\\\\movies.csv", ",");
+		
+		System.out.println("FILMS:");
+		
+		for( MovieId m : films) {
+			System.out.println(m.name + " " + m.id);
+		}
+		
+		System.out.println("");
+		System.out.println("");
+
+		// Second we create a structure with the ratings of the users
+		List<ArrayList<Double>> matrix;
+		matrix = ReaderOfFiles.readFile("C:\\\\Users\\\\tomas\\\\Desktop\\\\AI\\\\Implementacion\\\\DataSets\\\\MoviesDataset\\\\\\\\ratings.csv", ",", films);
+		
+		System.out.println("MATRIX:");
+		
+		matrixReader(matrix);
+
+		/*
+		 * 3. Estandarizo los datos es decir para cada fila debo de calcular para cada
+		 * valor cual es su valor estandarizado y este es: (valor - valorMedioFila) /
+		 * (maximoFila - minimoFila)
+		 */
+		
+		List<ArrayList<Double>> mStandard;
+		System.out.println("");
+		System.out.println("STANDARIZE DATA:");
+		mStandard = CollaborativeFiltering.standarize(matrix);
+
+		System.out.println();
+		System.out.println("MATRIX STANDARD");
+		matrixReader(mStandard);
+		/*
+		 * 4. Si quieres item to item (Lo vamos a hacer) que en teoria es mejor
+		 * recomendacion y es la que hace el video y por tanto mas facil de seguir el
+		 * video debes de hacer la transpuesta de la matriz de los datos
+		 */
+		// transposed matrix
+		double[][] matrixT = new double[mStandard.get(0).size()][mStandard.size()];
+		for (int x = 0; x < mStandard.size(); x++) {
+			for (int y = 0; y < mStandard.get(x).size(); y++) {
+				matrixT[y][x] = mStandard.get(x).get(y);
+			}
+		}
+		System.out.println("");
+		System.out.println("TRANSPOSED MATRIX");
+		matrixReader(matrixT);
+
+		/*
+		 * 5. Hay que crear una matriz nueva fruto del cuisine similarity por cada
+		 * columna es decir por cada peli debemos de decir cual es su cuisine similarity
+		 * con el resto de pelis es decir con el resto de columnas asi que se nos queda
+		 * una nueva matriz jxj PelixPeli El cuisine similarity se calcula con el dot
+		 * product o producto escalar, si recordamos del instituto para calcular el
+		 * cos(angulo) lo usabamos. ð��´â‹…ð��µ = ||ð��´||Ã—||ð��µ||Ã—cos(ð�œƒ)
+		 * ð�‘†ð�‘–ð�‘šð�‘–ð�‘™ð�‘Žð�‘Ÿð�‘–ð�‘¡ð�‘¦(ð��´,ð��µ)=cos(ð�œƒ)=(ð��´â‹…ð��µ) / (||ð��´||Ã—||ð��µ||) n
+		 * ð��´â‹…ð��µ=âˆ‘ð��´ð�‘–Ã—ð��µð�‘–=(ð��´1Ã—ð��µ1)+(ð��´2Ã—ð��µ2)+â€¦+(ð��´ð�‘›Ã—ð��µð�‘›) i=1 ||ð��´|| =
+		 * sqrt(sumatory[1,n](pow(Ai,2)) ||ð��µ|| = sqrt(sumatory[1,n](pow(Bi,2))
+		 */
+		double[][] csMatrix = cosineSimilarity(matrixT);
+		System.out.println("");
+		System.out.println("COSINE SIMILARITY MATRIX");
+		matrixReader(csMatrix);
+		/*
+		 * 6. Creamos funcion getSimilarMovies que para una peli dada (simularia una
+		 * peli vista por un usuario) y el rating dado por el usuario cogeriamos la fila
+		 * donde esta esa peli y multiplicariamos cada valor de esa peli con el resto de
+		 * pelis es decir la fila de esa peli por el rating dado por el usuario - 2.5 si
+		 * el rating es entre 0 y 5 es decir la mitad justa para que el valor sea
+		 * coherente (ve el video) Lo que devuelve esta funcion es un mapa con la peli y
+		 * su valor para la peli dada por el usuario y el rating dado. Dichos elementos
+		 * deberian de ser devueltos ordenados en orden decreciente por su valor. El
+		 * primero de todos es la propia peli (logicamente esta tendra el valor mas
+		 * grande pues es la que mas se parece a si misma, a la peli dada(ve video)) y
+		 * el segundo es la peli recomendada
+		 */
+		
+		
+	}
+
+}

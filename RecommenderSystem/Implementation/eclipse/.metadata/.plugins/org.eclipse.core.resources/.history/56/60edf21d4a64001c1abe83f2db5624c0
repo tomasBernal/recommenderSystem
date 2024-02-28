@@ -1,0 +1,16 @@
+package recommendationSystem;
+
+import java.util.LinkedList;
+import java.util.List;
+
+public class UserRating {
+
+	int userId;
+	LinkedList<Rating> list;
+	
+	UserRating(int userId, List<Rating> list){
+		
+		userId = this.userId;
+		list = this.list;
+	}
+}

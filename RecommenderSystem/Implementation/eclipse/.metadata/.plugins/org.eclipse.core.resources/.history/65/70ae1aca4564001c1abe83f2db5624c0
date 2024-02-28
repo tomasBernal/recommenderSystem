@@ -1,0 +1,307 @@
+package recommendationSystem;
+
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.regex.Pattern;
+
+public abstract class ReaderOfFiles {
+	
+	// This variable is the reader that will be used to read the file
+	private static BufferedReader reader;
+	
+	// This variable will store each line of the file (every row of the csv)
+	private static String line;
+	
+	// This array will store each line split in words
+	private static String parts[];
+	
+	// This function extract the headers of a csv file
+	public static List<String> getHeaders(String fileName, String divider){
+		
+		// An array that stores the headers of each row of the csv
+		ArrayList<String> headers = new ArrayList<>();
+		
+		try {
+			
+			// Creation of the reader
+			reader = new BufferedReader(new FileReader(fileName));
+			
+			// We read the first line (row)
+			line = reader.readLine();
+	    	
+			
+			if( line == null) {
+				
+				return null;
+				
+			} else { 
+	    		
+				// If the file is not empty
+				
+				// We split the first line in columns
+	    		parts = line.split(divider);
+	    		
+	    		// Adding the headers to the array
+	    		for(int i = 0; i < parts.length; i++) {
+	    			headers.add(parts[i]);
+	    		}
+	    	}
+			
+			// Clossing the reader
+	    	reader.close();
+	    	
+	    	return headers;
+	    	
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		return null;
+	}
+	
+	
+	// We need this two classes for the structure that we create when we read the csv
+	
+	class UserRating{
+		
+		int userId;
+		LinkedList<Rating> list;
+		
+		UserRating(int userId, LinkedList<Rating> list){
+			
+			userId = this.userId;
+			list = this.list;
+		}
+	}
+	
+	// We use this class as a struct
+	class Rating{
+		int movie;
+		double rating;
+		
+		Rating(int movie, double rating){
+			movie = this.movie;
+			rating = this.rating;
+		}
+	}
+	
+	// This function extracts the content of a csv file in full lines
+		public static List<ArrayList<Double>> readFullLine(String fileName, String divider) {
+
+			// This structure contains all the users and all the movies, it contains the ratings of each user
+			// or 0.0 if the user has not rated a movie
+			LinkedList<UserRating> matrix = new LinkedList<>();
+			
+			// This array contains the id's of the movies that are rated
+			ArrayList<Double> movies = new ArrayList<>();
+			
+			// This variable contains the id of the last user
+			int lastUser = 0;
+			
+			// This variable contains the index in the structure of the last user
+			int actualUser = 0;
+			
+			try {
+				
+				// Creation of the reader
+		    	reader = new BufferedReader(new FileReader(fileName));
+		    		    	
+		    	// The header row is readed
+		    	line = reader.readLine();
+		    	
+		    	if( line == null) {
+		    		
+		    		reader.close();
+		    		return null;
+		    		
+		    	} else {
+		    		
+		    		// If the file is not empty
+		    		
+		    		// The header is printed
+		    		parts = line.split(divider);
+		    		printHeader();
+		    	}
+		    	
+		    	
+		    	// We need to analize the first line separately because we need to know
+		    	// who is the first user for the checking of the last user
+		    	    
+		    	// This variable stores the rating of the user for the actual movie
+		    	Double rating;
+		    	
+		    	// Each line is splited using the divider
+		        parts = line.split(divider);
+		           
+		        // 2 is rating in the csv (the rating of the user)
+				// Checking if it is an integer or a double 
+			   	if(Pattern.matches("\\d+", parts[2]) || Pattern.matches("\\d+\\.\\d+", parts[2])) {
+			   		   
+			   		//Conversion of the string with the rate to double
+				    rating = Double.parseDouble(parts[2]);
+					        	   
+				}else {
+				        		   
+				    //If it is not we can consider that there is no rating
+				    rating = 0.0;
+				}
+				   
+			   	// We create the first node of the list of ratings of the user
+			   	LinkedList<Rating> movieRating = new LinkedList<> ();
+			   	
+			   	//movieRating.add(new Rating(Integer.parseInt(parts[1]), rating));
+			   	
+			   	// We add the node of the user to the structure
+			   	matrix.add(new UserRating(Integer.parseInt(parts[0]), movieRating));
+			   	
+			      
+			   	// We add the rated movie to the list of rated movies
+			   	movies.add(Double.parseDouble(parts[1]));
+			   	
+		   		lastUser = Integer.parseInt(parts[0]);
+			   	   
+		        // The file is read line by line
+		        while ((line = reader.readLine()) != null) {
+		        	
+		           // Each line is splited using the divider
+		           parts = line.split(divider);
+		           
+		           // 2 is rating in the csv (the rating of the user)
+				   // Checking if it is an integer or a double 
+			   	   if(Pattern.matches("\\d+", parts[2]) || Pattern.matches("\\d+\\.\\d+", parts[2])) {
+			   		   
+			   		   //Conversion of the string with the rate to double
+				       rating = Double.parseDouble(parts[2]);
+					        	   
+				   }else {
+				        		   
+				       //If it is not we can consider that there is no rating
+				       rating = 0.0;
+				   }
+				   
+			   	   
+			   	   // If is the first time that a user rates the actual movie, we add this movie to the array
+			   	   if(!movies.contains(Double.parseDouble(parts[1]))) {
+			   		   movies.add(Double.parseDouble(parts[1]));
+			   	   }
+			   	   
+			   	   // We check if the actual rating is from the same user that the last
+			   	   if(lastUser != Integer.parseInt(parts[0])) {
+			   		
+			   		// If the actual user is a new user of our structure
+			   		   
+			   		// We create the first node of the list of ratings of the user
+					movieRating = new LinkedList<> ();
+				   	movieRating.add(new Rating(Integer.parseInt(parts[1]), rating));
+					   	
+				   	// We add the node of the user to the structure
+				   	matrix.add(new UserRating(Integer.parseInt(parts[0]), movieRating));
+				   	
+				   	// We change the info about the actual user
+				   	lastUser = Integer.parseInt(parts[0]);
+				   	
+				   	actualUser++;
+			   	   
+			   	   } else {
+			   		// If the user has not changed
+			   		   
+			   		// First we get the node of the actual user
+			   		// Secondly we get the list of ratings
+			   		// Finally we add the rating
+			   		matrix.get(actualUser).list.add(new Rating(Integer.parseInt(parts[1]), rating));
+					   						   
+			   	   }
+		       	   
+		        }
+		         
+		        for(UserRating u : matrix) {
+		        	
+		        	System.out.print(u.userId + " -> ");
+		        	
+		        	for(Rating r : u.list) {
+		        		System.out.print(r.movie + " " + r.rating + " | ");
+		        	}
+		        	
+		        	System.out.println();
+		        	
+		        }
+		        // The reader is closed
+		        reader.close();
+		        
+		        // Now we have all the ratings in our structure ratings
+		        // We need to introduce the ratings in the matrix
+////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////ARREGLAR///////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////
+/*
+		        // For each user
+		        for(String userId : userMovie.keySet()) {
+		        	
+		        	// Firt in the row we add the userId
+		        	row.add(Double.parseDouble(userId));
+		        	
+		        	// We use the ratings of these user
+		        	HashMap<String, Double> ratings = userMovie.get(userId);
+		        	
+		        	// For each movie
+		        	for(String movie : movies) {
+		        		
+		        		// We cheeck if the user has a rating or not
+		        		// If yes, we add the rating
+		        		if(ratings.containsKey(movie)) {
+		        			row.add(ratings.get(movie));
+		        		//If not we add 0.0	
+		        		} else {
+		        			row.add(0.0);
+		        		}
+		        		
+		        	}
+
+		        	
+		        	//We could call the function printLine to print the row
+		        	//printLine(row);
+		        }
+*/		        
+		        return null;
+		         
+		     } catch (Exception e) {
+		    	 
+		    	 e.printStackTrace();
+		    	 return null;
+		    	 
+		     } 
+		    
+		}
+	
+	
+	// This function print a line of a file with a format
+	public static void printLine(ArrayList<Double> row) {
+		
+		//we print every part dividing it by | 
+		for(int i = 0; i < row.size(); i++) {
+			System.out.print(row.get(i) + "\t | \t");
+		}
+		//We make a jump to the next line
+		System.out.println();
+	}
+	
+	// This function print the header of a file
+	public static void printHeader() {
+		
+		//we print every part dividing it by | 
+		System.out.print("              ");
+		for(int i = 0; i < parts.length; i++) {
+			System.out.print(parts[i] + "\t | ");
+		}
+		//We make a jump to the next line
+		System.out.println();
+	}
+}

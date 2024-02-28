@@ -1,0 +1,15 @@
+package recommendationSystem;
+
+import java.util.List;
+
+public class UserRating {
+
+	int userId;
+	List<Rating> list;
+	
+	UserRating(int userId, List<Rating> list){
+		
+		this.userId = userId;
+		this.list = list;
+	}
+}

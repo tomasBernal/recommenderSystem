@@ -1,0 +1,25 @@
+In the folder eclipse you will find the java project related to our work.
+
+
+To run our algorithm we have used:
+	Eclipse version : 2021-12 (4.22.0)
+	Java version : 8.302.08.1
+
+
+In addition, you will need to change the path of the files that our algorithm uses.
+For this you have to keep the AI folder with the structure it has, that is, you cannot move the User, Dataset and Result folders.
+If the structure is the same that we have sent you, you only have to point the path where you have the AI folder and write it in the pathSource constant, this constant is in line 18 of the Hybrid class.
+
+Once you have made this change you are ready to run the algorithm.
+
+
+Inside the main of the Hybrid class (this class is the main class) has functions to generate genres hated by the user and user ratings randomly, these functions are called generateGenres (line 158) and generateRatings (line 212) and are implemented in the ReaderOfFiles class.
+
+These functions allow you to generate random entries for the algorithm, you can also change the contents of the files by hand (as indicated in the README of the User folder) or enter them by console (which is indicated in the code itself by comments).
+
+algorithm we have implemented several preprocessing.
+A preprocessing of the Dataset, this is located in line 100 of the Hybrid class and has to be executed each time the Dataset is modified.
+A preprocessing of the cosine matrix, this is located in line 309 of the Collaborative class and has to be executed each time the Dataset is modified.
+A preprocessing of the gender matrix, this is located in the 337 line of the Content and has to be executed each time the Dataset is modified.
+All the preprocessing depends on the Dataset used, therefore each Dataset has a preprocessing.
+

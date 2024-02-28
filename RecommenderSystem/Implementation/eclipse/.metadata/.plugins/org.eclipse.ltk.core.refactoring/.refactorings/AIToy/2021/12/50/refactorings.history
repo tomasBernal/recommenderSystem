@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<session version="1.0">
+<refactoring comment="Redenominar el paquete &apos;recomendationSystem&apos; como &apos;recommendationSystem&apos;&#x0D;&#x0A;- Proyecto original: &quot;AIToy&quot;&#x0D;&#x0A;- Elemento original: &apos;AIToy/src/recomendationSystem&apos;&#x0D;&#x0A;- Elemento redenominado: &apos;AIToy/src/recommendationSystem&apos;&#x0D;&#x0A;- Actualizar referencias a elemento refactorizado&#x0D;&#x0A;- Actualizar apariciones textuales en comentarios y series" description="Redenominar paquete &apos;recomendationSystem&apos;" flags="589830" hierarchical="false" id="org.eclipse.jdt.ui.rename.package" input="/src&lt;recomendationSystem" name="recommendationSystem" qualified="false" references="true" stamp="1639956898817" textual="false" version="1.0"/>
+</session>
